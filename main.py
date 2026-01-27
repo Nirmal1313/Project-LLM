@@ -1,86 +1,3 @@
-"""
-LLM Tokenizer Project - Entry Point
-
-This is the main entry point that uses the modular tokenizer package.
-"""
-"""
-import os
-import sys
-from pathlib import Path
-
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
-
-from src.tokenizer import TokenizerApplication, SpecialTokens
-from src.tokenizer.core import setup_logging, get_logger
-import logging
-
-
-# Initialize logging (logs to both console and logs/tokenizer.log)
-log_file = setup_logging(level=logging.INFO)
-logger = get_logger(__name__)
-
-if log_file:
-    logger.info(f"Logging to file: {log_file.absolute()}")
-
-
-def greet(name: str) -> str:
-    return f"Hello, {name}!"
-
-
-def demo_tokenizer(app: TokenizerApplication) -> None:
-    
-    logger.info("--- TokenizerWithUnknown Demo ---")
-    tokenizer = app.get_tokenizer("with_unknown")
-    print(tokenizer)
-    # sample_text1 = "Tao be, e question."
-    # sample_text2 = "Thesaurus Functions: Synonyms and antonyms are often included."
-    # sample_text3 = f"{sample_text1}|<ENDOFTEXT>|{sample_text2}"
-    
-    # logger.info(f"Input: {sample_text3}")
-    
-    # # Encode
-    # encoded_ids = tokenizer.encode(sample_text3)
-    # logger.info(f"Encoded IDs: {encoded_ids}")
-    
-    # # Decode
-    # decoded_text = tokenizer.decode(encoded_ids)
-    # logger.info(f"Decoded text: {decoded_text}")
-
-
-def main() -> None:
-    #logger.info(greet("World"))
-    
-    # Setup paths
-    script_dir = Path(os.path.dirname(os.path.abspath(__file__)))
-    data_file = script_dir / "Data" / "The Project The Complete Works of William Shakespeare by William Shakespeare.txt"
-    
-    # Create application with injected dependencies
-    #logger.info("Creating TokenizerApplication...")
-    app = TokenizerApplication(
-        special_tokens=SpecialTokens(),
-    )
-    
-    # Load vocabulary
-    vocab_info = app.load_vocabulary_from_file(data_file)
-    
-    #logger.info(f"Vocabulary size: {vocab_info.size}")
-    #logger.info(f"Special tokens: {vocab_info.special_tokens}")
-    #logger.debug("Last 5 tokens in vocabulary:")
-    #for token, idx in vocab_info.sample:
-        #logger.debug(f"  {token!r}: {idx}")
-    
-    # Run demo
-    #demo_tokenizer(app)
-    
-    print(vocab_info)
-    logger.info("Demo completed successfully!")
-
-
-if __name__ == "__main__":
-    main() """
-    
-
 import os
 import re
 import tiktoken
@@ -143,10 +60,47 @@ def clean_text(text: str) -> str:
     
     return text
 
+def split_documents(text: str) -> list[str]:
+    """Split text into documents by play boundaries."""
+    # Regex to match play titles (all caps, multiple words, at start of line)
+    play_pattern = r'^([A-Z][A-Z\' ]+[A-Z])$'
+    
+    documents = []
+    current_doc = []
+    lines = text.split('\n')
+    
+    for i, line in enumerate(lines):
+        # Check if this line is a play title
+        if re.match(play_pattern, line.strip()) and len(line.strip()) > 10:
+            # Check context: should have blank lines before/after
+            prev_blank = i > 0 and not lines[i-1].strip()
+            next_blank = i < len(lines)-1 and not lines[i+1].strip()
+            
+            if prev_blank or next_blank:
+                # Save current document if it has content
+                if current_doc:
+                    doc_text = '\n'.join(current_doc).strip()
+                    if len(doc_text) > 100:  # Minimum length filter
+                        documents.append(doc_text)
+                # Start new document
+                current_doc = [line]
+                continue
+        
+        current_doc.append(line)
+    
+    # Add final document
+    if current_doc:
+        doc_text = '\n'.join(current_doc).strip()
+        if len(doc_text) > 100:
+            documents.append(doc_text)
+    
+    return documents
+
+
 def split_into_words(text: str) -> list:
     """Split text into words using regex."""
     # Clean the text first
-#     text = clean_text(text1)
+    text = clean_text(text)
 #     words = re.split(r'([,.:;!<>?"()\[\]{}\-_@#$%^&*+=~`|\\\/]|--|\s)', text)
 #     #print("Words extracted from the text snippet:", words);
 #     result = [item for item in words if item.strip()]
@@ -169,27 +123,51 @@ def split_into_words(text: str) -> list:
     # #print("Encoded IDs for sample text:", encoded_ids1);
     # decoded_text = SimpleTokenizerV2_instance.tokenize(encoded_ids1);
     # #print("Decoded text from IDs:", decoded_text);
+    documents = split_documents(text)
+    print(f"Found {len(documents)} documents")
+    
+    # Filter out very short documents and join with separator
+    # filtered_docs = []
+    # for doc in documents:
+    #     # Remove empty/whitespace-only content
+    #     doc = doc.strip()
+    #     if not doc:
+    #         continue
+    #     # Minimum token threshold (approximate: ~4 chars per token)
+    #     if len(doc) < 400:  # ~100 tokens minimum
+    #         continue
+    #     # Truncate very long documents (optional, adjust as needed)
+    #     if len(doc) > 500000:  # ~125k tokens
+    #         doc = doc[:500000]
+    #     filtered_docs.append(doc)
+    
+    # print(f"After filtering: {len(filtered_docs)} documents")
+    
+    # Join with <|endoftext|> separator
+    text_with_boundaries = '<|endoftext|>'.join(documents)
     
     
     encoding = tiktoken.encoding_for_model("gpt-4o")
 
     # Encode text into a list of token integers
-    tokens = encoding.encode(text)
+    tokens = encoding.encode(text_with_boundaries, allowed_special={"<|endoftext|>"})
     print(f"Tokens: {len(tokens)} tokens")
+    
 
-    # Decode tokens back into text
-    decoded_text = encoding.decode(tokens)
-   # print(f"Decoded text: {len(decoded_text)} characters")
+    dataloader = create_dataloader(text_with_boundaries, encoding, batch_size=8, max_length=256, stride=256)  # set num_workers=0 inside
+    input_seq, target_seq = next(iter(dataloader))
 
-    # Count the number of tokens
-    token_count = len(tokens)
-    #print(f"Token count: {token_count}")
-    dataloader=create_dataloader(text, encoding, max_length=256, stride=128, batch_size=4);
-    data_itr=iter(dataloader);
-    input_seq, target_seq=next(data_itr);
-    print("Input Sequence Tokens:", input_seq)
-    print("Target Sequence Tokens:", target_seq)
-   
+    vocab_size = encoding.n_vocab
+    output_dim = 256
+    token_embedding_layer = torch.nn.Embedding(vocab_size, output_dim)
+
+    token_embeddings = token_embedding_layer(input_seq)          # (B, T, D)
+    seq_len = input_seq.size(1)
+    pos_indices = torch.arange(seq_len, device=input_seq.device) # (T,)
+    pos_embedding_layer = torch.nn.Embedding(seq_len, output_dim)
+    pos_embeddings = pos_embedding_layer(pos_indices)            # (T, D)
+    input_embeddings = token_embeddings + pos_embeddings         # (B, T, D)
+    print(input_embeddings.shape)
     return tokens
  
 # def VocabularySort(words: list) -> list:
@@ -283,10 +261,10 @@ class GPTDataset(Dataset):
         return input_seq, target_seq
     
 
-def create_dataloader(txt, tokenizer, max_length=256, stride=128, batch_size=4) -> DataLoader:
+def create_dataloader(txt, tokenizer, max_length, stride, batch_size) -> DataLoader:
     """Create DataLoader for the GPT dataset."""
     dataset = GPTDataset(txt, tokenizer, max_length, stride)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=2)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=0)
     return dataloader
 
 if __name__ == "__main__":
