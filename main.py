@@ -1,5 +1,6 @@
 import os
 import re
+from src.model import attention
 import tiktoken
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -115,7 +116,7 @@ def split_into_words(text: str) -> list:
     print(f"Tokens: {len(tokens)} tokens")
     
 
-    dataloader = create_dataloader(text_with_boundaries, encoding, batch_size=8, max_length=256, stride=256)  # set num_workers=0 inside
+    dataloader = create_dataloader(text_with_boundaries, encoding, batch_size=32, max_length=256, stride=256)  # set num_workers=0 inside
     input_seq, target_seq = next(iter(dataloader))
 
     vocab_size = encoding.n_vocab
@@ -132,11 +133,9 @@ def split_into_words(text: str) -> list:
         pos_indices = torch.arange(seq_len, device=input_seq.device)   # (T,)
         pos_embeddings = pos_embedding_layer(pos_indices)               # (T, D)
         input_embeddings = token_embeddings + pos_embeddings            # (B, T, D)
-        
-        if batch_idx % 100 == 0:
-            print(f"Batch {batch_idx}, input_embeddings shape: {input_embeddings.shape}")
-
-        print(f"Total batches processed: {batch_idx + 1}")
+        attention_layer = attention.CausalSelfAttention(d_model=256, n_heads=4)
+        context_vectors = attention_layer(input_embeddings)
+        #print (f"Batch {batch_idx}: Context vectors shape: {context_vectors.shape}")  # Should be (B, T, D) 
     return tokens
 
 
@@ -167,7 +166,7 @@ class GPTDataset(Dataset):
 def create_dataloader(txt, tokenizer, max_length, stride, batch_size) -> DataLoader:
     """Create DataLoader for the GPT dataset."""
     dataset = GPTDataset(txt, tokenizer, max_length, stride)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=0)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=4)
     return dataloader
 
 if __name__ == "__main__":
