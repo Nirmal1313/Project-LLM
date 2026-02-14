@@ -8,22 +8,14 @@ from torch.utils.data import Dataset, DataLoader
 from src.model.gpt import GPTModel
 
 
-# =============================================================================
-# Data Preparation
-# =============================================================================
-
 def load_text(file_path: str) -> str:
-    """Load raw text from a file."""
     with open(file_path, "r", encoding="utf-8") as file:
         return file.read()
 
 
 def clean_text(text: str) -> str:
-    """Clean text by replacing smart quotes and special characters with standard ones."""
-    # Normalize unicode characters (NFKD decomposes characters)
     text = unicodedata.normalize('NFKD', text)
 
-    # Replace common smart quotes and dashes
     replacements = {
         '\u2018': "'",  # Left single quote
         '\u2019': "'",  # Right single quote
@@ -36,13 +28,13 @@ def clean_text(text: str) -> str:
     for old, new in replacements.items():
         text = text.replace(old, new)
 
-    # Keep only ASCII printable characters
+    # strip non-ASCII so tokenizer doesn't choke
     text = ''.join(char if ord(char) < 128 else '' for char in text)
     return text
 
 
 def split_documents(text: str) -> list[str]:
-    """Split text into documents by play boundaries."""
+    # each Shakespeare play starts with an ALL-CAPS title line
     play_pattern = r'^([A-Z][A-Z\' ]+[A-Z])$'
 
     documents = []
@@ -73,13 +65,6 @@ def split_documents(text: str) -> list[str]:
 
 
 def prepare_data(file_path: str, batch_size: int = 32, max_length: int = 256, stride: int = 256):
-    """
-    Full data pipeline: load → clean → split → tokenize → DataLoader.
-    
-    Returns:
-        dataloader: DataLoader with input/target pairs
-        encoding: tiktoken encoding (needed for vocab_size)
-    """
     raw_text = load_text(file_path)
     text = clean_text(raw_text)
     documents = split_documents(text)
@@ -99,12 +84,7 @@ def prepare_data(file_path: str, batch_size: int = 32, max_length: int = 256, st
     return dataloader, encoding
 
 
-# =============================================================================
-# Dataset & DataLoader
-# =============================================================================
-
 class GPTDataset(Dataset):
-    """Custom Dataset for GPT tokenized data."""
 
     def __init__(self, txt, tokenizer, max_length, stride) -> None:
         self.input_ids = []
@@ -126,27 +106,13 @@ class GPTDataset(Dataset):
 
 
 def create_dataloader(txt, tokenizer, max_length, stride, batch_size) -> DataLoader:
-    """Create DataLoader for the GPT dataset."""
     dataset = GPTDataset(txt, tokenizer, max_length, stride)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True,
                             drop_last=True, num_workers=0)
     return dataloader
 
 
-# =============================================================================
-# Training
-# =============================================================================
-
 def train(model: GPTModel, dataloader: DataLoader, num_epochs: int = 5, lr: float = 3e-4):
-    """
-    Training loop: forward pass → loss → backward → update weights.
-    
-    Args:
-        model: GPTModel instance
-        dataloader: DataLoader with (input_ids, target_ids) pairs
-        num_epochs: how many times to go through the entire dataset
-        lr: learning rate for Adam optimizer
-    """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     model.train()
 
@@ -155,16 +121,14 @@ def train(model: GPTModel, dataloader: DataLoader, num_epochs: int = 5, lr: floa
         num_batches = 0
 
         for batch_idx, (input_seq, target_seq) in enumerate(dataloader):
-            # Forward pass: input_ids → logits
-            logits = model(input_seq)                          # (B, T, vocab_size)
+            logits = model(input_seq)
 
-            # Reshape for cross-entropy: (B*T, vocab_size) vs (B*T,)
+            # flatten (B,T,vocab) -> (B*T,vocab) for cross-entropy
             loss = F.cross_entropy(
-                logits.view(-1, logits.size(-1)),              # (B*T, vocab_size)
-                target_seq.view(-1)                            # (B*T,)
+                logits.view(-1, logits.size(-1)),
+                target_seq.view(-1)
             )
 
-            # Backward pass
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -179,21 +143,15 @@ def train(model: GPTModel, dataloader: DataLoader, num_epochs: int = 5, lr: floa
         print(f"Epoch {epoch+1}/{num_epochs} — Avg Loss: {avg_loss:.4f}")
 
 
-# =============================================================================
-# Main
-# =============================================================================
-
 if __name__ == "__main__":
-    # --- Config ---
     BATCH_SIZE = 32
     MAX_LENGTH = 256
     STRIDE = 256
-    D_MODEL = 256       # embedding dimension
-    N_HEADS = 4         # attention heads
+    D_MODEL = 256
+    N_HEADS = 4    # 256/4=64 per head, keeps it manageable on CPU
     NUM_EPOCHS = 5
     LR = 3e-4
 
-    # --- Data ---
     script_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(script_dir, "Data",
                              "The Project The Complete Works of William Shakespeare by William Shakespeare.txt")
@@ -201,7 +159,6 @@ if __name__ == "__main__":
     dataloader, encoding = prepare_data(file_path, batch_size=BATCH_SIZE,
                                         max_length=MAX_LENGTH, stride=STRIDE)
 
-    # --- Model ---
     model = GPTModel(
         vocab_size=encoding.n_vocab,
         d_model=D_MODEL,
@@ -211,5 +168,4 @@ if __name__ == "__main__":
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Model parameters: {total_params:,}")
 
-    # --- Train ---
     train(model, dataloader, num_epochs=NUM_EPOCHS, lr=LR)
