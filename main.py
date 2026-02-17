@@ -5,7 +5,7 @@ import tiktoken
 import torch
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
-from src.model.gpt import GPTModel
+from src.model.gpt import GPTModel, GPT_CONFIGS
 
 
 def load_text(file_path: str) -> str:
@@ -17,24 +17,19 @@ def clean_text(text: str) -> str:
     text = unicodedata.normalize('NFKD', text)
 
     replacements = {
-        '\u2018': "'",  # Left single quote
-        '\u2019': "'",  # Right single quote
-        '\u201c': '"',  # Left double quote
-        '\u201d': '"',  # Right double quote
-        '\u2013': '-',  # En-dash
-        '\u2014': '-',  # Em-dash
-        '\u2026': '...',  # Ellipsis
+        '\u2018': "'", '\u2019': "'",
+        '\u201c': '"', '\u201d': '"',
+        '\u2013': '-', '\u2014': '-',
+        '\u2026': '...',
     }
     for old, new in replacements.items():
         text = text.replace(old, new)
 
-    # strip non-ASCII so tokenizer doesn't choke
     text = ''.join(char if ord(char) < 128 else '' for char in text)
     return text
 
 
 def split_documents(text: str) -> list[str]:
-    # each Shakespeare play starts with an ALL-CAPS title line
     play_pattern = r'^([A-Z][A-Z\' ]+[A-Z])$'
 
     documents = []
@@ -112,7 +107,7 @@ def create_dataloader(txt, tokenizer, max_length, stride, batch_size) -> DataLoa
     return dataloader
 
 
-def train(model: GPTModel, dataloader: DataLoader, num_epochs: int = 5, lr: float = 3e-4):
+def train(model, dataloader, device, num_epochs: int = 5, lr: float = 3e-4):
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     model.train()
 
@@ -121,9 +116,11 @@ def train(model: GPTModel, dataloader: DataLoader, num_epochs: int = 5, lr: floa
         num_batches = 0
 
         for batch_idx, (input_seq, target_seq) in enumerate(dataloader):
+            input_seq = input_seq.to(device)
+            target_seq = target_seq.to(device)
+
             logits = model(input_seq)
 
-            # flatten (B,T,vocab) -> (B*T,vocab) for cross-entropy
             loss = F.cross_entropy(
                 logits.view(-1, logits.size(-1)),
                 target_seq.view(-1)
@@ -144,11 +141,10 @@ def train(model: GPTModel, dataloader: DataLoader, num_epochs: int = 5, lr: floa
 
 
 if __name__ == "__main__":
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     BATCH_SIZE = 32
-    MAX_LENGTH = 256
-    STRIDE = 256
-    D_MODEL = 256
-    N_HEADS = 4    # 256/4=64 per head, keeps it manageable on CPU
+    CONTEXT_LENGTH = 256
     NUM_EPOCHS = 5
     LR = 3e-4
 
@@ -157,15 +153,15 @@ if __name__ == "__main__":
                              "The Project The Complete Works of William Shakespeare by William Shakespeare.txt")
 
     dataloader, encoding = prepare_data(file_path, batch_size=BATCH_SIZE,
-                                        max_length=MAX_LENGTH, stride=STRIDE)
+                                        max_length=CONTEXT_LENGTH, stride=CONTEXT_LENGTH)
 
-    model = GPTModel(
-        vocab_size=encoding.n_vocab,
-        d_model=D_MODEL,
-        n_heads=N_HEADS,
-        max_length=MAX_LENGTH,
-    )
+    PRESET = "tiny"
+    GPT_CONFIG = {**GPT_CONFIGS[PRESET], "vocab_size": encoding.n_vocab}
+    GPT_CONFIG["context_length"] = CONTEXT_LENGTH
+
+    model = GPTModel(GPT_CONFIG).to(device)
+
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Model parameters: {total_params:,}")
 
-    train(model, dataloader, num_epochs=NUM_EPOCHS, lr=LR)
+    train(model, dataloader, device, num_epochs=NUM_EPOCHS, lr=LR)
