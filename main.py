@@ -6,6 +6,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from src.model.gpt import GPTModel, GPT_CONFIGS
+from src.model.generate import TextGenerator
 
 
 def load_text(file_path: str) -> str:
@@ -165,3 +166,25 @@ if __name__ == "__main__":
     print(f"Model parameters: {total_params:,}")
 
     train(model, dataloader, device, num_epochs=NUM_EPOCHS, lr=LR)
+
+    # --- Next-token prediction / text generation ---
+    generator = TextGenerator(model, encoding, device)
+
+    prompt = "To be, or not to be"
+    print(f"\n{'='*60}")
+    print(f"Prompt: {prompt}")
+    print(f"{'='*60}")
+
+    # Show top-5 predicted next tokens
+    predictions = generator.predict_next_token(prompt, top_k=5)
+    print("\nTop-5 next-token predictions:")
+    for token, prob in predictions:
+        print(f"  {repr(token):>15s}  →  {prob:.4f}")
+
+    # Generate continuation (greedy)
+    greedy_text = generator.generate(prompt, max_new_tokens=50, temperature=0.0)
+    print(f"\nGreedy:\n{greedy_text}")
+
+    # Generate continuation (sampled with temperature)
+    sampled_text = generator.generate(prompt, max_new_tokens=50, temperature=0.8, top_k=40)
+    print(f"\nSampled (temp=0.8, top_k=40):\n{sampled_text}")
