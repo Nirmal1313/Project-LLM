@@ -103,7 +103,7 @@ class GPTDataset(Dataset):
 def create_dataloader(txt, tokenizer, max_length, stride, batch_size) -> DataLoader:
     dataset = GPTDataset(txt, tokenizer, max_length, stride)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True,
-                            drop_last=True, num_workers=0)
+                            drop_last=True, num_workers=4)
     return dataloader
 
 
