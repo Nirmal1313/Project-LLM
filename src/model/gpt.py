@@ -7,11 +7,13 @@ from src.model.transformerBlock import TransformerBlock
 
 
 GPT_CONFIGS = {
+    "gpt2-124M":   dict(d_model=768,  n_heads=12, n_layers=12, context_length=1024, dropout=0.1, qkv_bias=True),
     "gpt3-small":  dict(d_model=768,  n_heads=12, n_layers=12, context_length=2048, dropout=0.1, qkv_bias=False),
     "gpt3-medium": dict(d_model=1024, n_heads=16, n_layers=24, context_length=2048, dropout=0.1, qkv_bias=False),
     "gpt3-large":  dict(d_model=1536, n_heads=16, n_layers=24, context_length=2048, dropout=0.1, qkv_bias=False),
     "gpt3-xl":     dict(d_model=2048, n_heads=16, n_layers=24, context_length=2048, dropout=0.1, qkv_bias=False),
     "tiny":        dict(d_model=256,  n_heads=4,  n_layers=4,  context_length=256,  dropout=0.1, qkv_bias=False),
+    "micro":       dict(d_model=128,  n_heads=4,  n_layers=2,  context_length=128,  dropout=0.1, qkv_bias=False),
 }
 
 
