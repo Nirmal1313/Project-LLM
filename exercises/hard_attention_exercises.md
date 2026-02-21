@@ -313,4 +313,4 @@ Which factor matters most? Why? What could you study next to deepen your underst
 - **Ask "why"**—not just "what happens," but "why is the design this way?"
 - **Be okay with wrong answers**—the point is reasoning, not correctness.
 
-**Good luck! 🚀**
+**Good luck!**
