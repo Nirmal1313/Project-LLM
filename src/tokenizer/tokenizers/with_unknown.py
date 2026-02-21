@@ -1,9 +1,4 @@
-"""
-Tokenizer with unknown token handling.
-
-Strategy Pattern: Different strategy that replaces unknown tokens with <UNK>.
-Open-Closed: Extends base tokenizer behavior without modifying it.
-"""
+"""Tokenizer with unknown token handling."""
 
 from __future__ import annotations
 
@@ -19,20 +14,6 @@ from src.tokenizer.tokenizers.base import BaseTokenizer
 
 
 class TokenizerWithUnknown(BaseTokenizer):
-    """
-    Tokenizer that handles unknown tokens with <UNK>.
-    
-    Open-Closed: Extends SimpleTokenizer behavior without modifying it.
-    Strategy Pattern: Different strategy for unknown tokens.
-    
-    Use this when:
-        - Text may contain tokens not in vocabulary
-        - You want graceful handling of unknown tokens
-    
-    Example:
-        tokenizer = TokenizerWithUnknown(vocabulary)
-        ids = tokenizer.encode("Hello xyz")  # xyz -> <UNK>
-    """
     
     def __init__(
         self,
@@ -40,14 +21,6 @@ class TokenizerWithUnknown(BaseTokenizer):
         text_splitter: Optional[ITextSplitter] = None,
         special_tokens: Optional[SpecialTokens] = None,
     ) -> None:
-        """
-        Initialize tokenizer with unknown token handling.
-        
-        Args:
-            vocabulary: Token to ID mapping
-            text_splitter: Text splitter instance
-            special_tokens: Special tokens configuration
-        """
         super().__init__(vocabulary, text_splitter)
         self._special_tokens = special_tokens or SpecialTokens()
         
@@ -70,15 +43,6 @@ class TokenizerWithUnknown(BaseTokenizer):
         return self._unk_id
     
     def encode(self, text: str) -> list[int]:
-        """
-        Encode text, replacing unknown tokens with <UNK>.
-        
-        Args:
-            text: Input text
-            
-        Returns:
-            List of token IDs
-        """
         # Use special token handling if splitter supports it
         if isinstance(self._splitter, TextSplitter):
             tokens = self._splitter.split_with_special_tokens(

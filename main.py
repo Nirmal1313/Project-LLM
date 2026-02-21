@@ -130,13 +130,6 @@ def train(model, train_loader, val_loader, device, config,
           num_epochs: int = 5, max_lr: float = 3e-4, min_lr: float = 3e-5,
           max_batches: int | None = None, warmup_steps: int = 100,
           max_grad_norm: float = 1.0, checkpoint_dir: str = None):
-    """
-    Full training loop with:
-    - Validation loss tracking (detect overfitting)
-    - Cosine LR decay with linear warmup
-    - Gradient clipping
-    - Checkpoint save/load (best + latest)
-    """
     optimizer = torch.optim.AdamW(model.parameters(), lr=max_lr, weight_decay=0.1)
     model.train()
 
@@ -176,7 +169,7 @@ def train(model, train_loader, val_loader, device, config,
             if max_batches and batch_idx >= max_batches:
                 break
 
-            # --- Cosine LR with linear warmup ---
+            # Cosine LR with linear warmup
             lr = _get_lr(global_step, warmup_steps, max_steps, max_lr, min_lr)
             for param_group in optimizer.param_groups:
                 param_group['lr'] = lr
@@ -193,7 +186,7 @@ def train(model, train_loader, val_loader, device, config,
             optimizer.zero_grad()
             loss.backward()
 
-            # --- Gradient clipping ---
+            # Gradient clipping
             grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
 
             optimizer.step()
@@ -218,7 +211,7 @@ def train(model, train_loader, val_loader, device, config,
         avg_loss = total_loss / num_batches_done
         epoch_losses.append(avg_loss)
 
-        # --- Validation loss ---
+        # Validation loss
         val_loss = _evaluate(model, val_loader, device, max_batches=max_batches)
         val_losses.append(val_loss)
 
@@ -230,14 +223,14 @@ def train(model, train_loader, val_loader, device, config,
               f"Train Loss: {avg_loss:.4f} | Val Loss: {val_loss:.4f} | "
               f"Time: {epoch_time:.1f}s{overfit_flag}\n")
 
-        # --- Save best model ---
+        # Save best model
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             _save_checkpoint(model, optimizer, epoch, global_step,
                              avg_loss, val_loss, config,
                              os.path.join(checkpoint_dir, "best_model.pt"))
 
-        # --- Save latest every epoch ---
+        # Save latest every epoch
         _save_checkpoint(model, optimizer, epoch, global_step,
                          avg_loss, val_loss, config,
                          os.path.join(checkpoint_dir, "latest_model.pt"))
@@ -251,9 +244,7 @@ def train(model, train_loader, val_loader, device, config,
     print(f"{'='*60}")
 
 
-# ============================================================
-# Helpers: LR schedule, evaluation, checkpointing
-# ============================================================
+
 
 def _get_lr(step: int, warmup_steps: int, max_steps: int,
             max_lr: float, min_lr: float) -> float:

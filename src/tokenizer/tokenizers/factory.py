@@ -1,8 +1,4 @@
-"""
-Tokenizer factory module.
-
-Factory Pattern: Encapsulates tokenizer creation logic.
-"""
+"""Tokenizer factory module."""
 
 from __future__ import annotations
 
@@ -17,17 +13,6 @@ from src.tokenizer.tokenizers.with_unknown import TokenizerWithUnknown
 
 
 class TokenizerFactory(LoggerMixin):
-    """
-    Factory for creating tokenizers.
-    
-    Factory Pattern: Encapsulates tokenizer creation logic.
-    
-    Supports:
-        - "with_unknown": TokenizerWithUnknown (replaces unknown tokens with <UNK>)
-    
-    Example:
-        tokenizer = TokenizerFactory.create("with_unknown", vocabulary)
-    """
     
     # Registry of tokenizer types
     _registry: dict[str, Type[BaseTokenizer]] = {

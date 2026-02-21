@@ -1,8 +1,4 @@
-"""
-File reading module.
-
-Single Responsibility: Only handles file I/O operations.
-"""
+"""File reading module."""
 
 from __future__ import annotations
 
@@ -14,15 +10,6 @@ from src.tokenizer.core.logging import LoggerMixin
 
 
 class FileReader(LoggerMixin):
-    """
-    Reads text files with proper encoding and error handling.
-    
-    Single Responsibility: Only handles file reading.
-    
-    Example:
-        reader = FileReader()
-        content = reader.read(Path("data.txt"))
-    """
     
     def __init__(self, encoding: str = Defaults.FILE_ENCODING) -> None:
         """
@@ -34,18 +21,6 @@ class FileReader(LoggerMixin):
         self._encoding = encoding
     
     def read(self, file_path: Path) -> str:
-        """
-        Read file contents.
-        
-        Args:
-            file_path: Path to the file
-            
-        Returns:
-            File contents as string
-            
-        Raises:
-            FileReadError: If file cannot be read
-        """
         file_path = Path(file_path)  # Ensure it's a Path object
         
         if not file_path.exists():

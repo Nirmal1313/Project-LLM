@@ -1,8 +1,4 @@
-"""
-Vocabulary building module.
-
-Single Responsibility: Only handles vocabulary construction.
-"""
+"""Vocabulary building module."""
 
 from __future__ import annotations
 
@@ -13,16 +9,6 @@ from src.tokenizer.models.schemas import SpecialTokens
 
 
 class VocabularyBuilder(LoggerMixin):
-    """
-    Builds vocabulary mappings from tokens.
-    
-    Single Responsibility: Only builds vocabulary mappings.
-    
-    Example:
-        builder = VocabularyBuilder()
-        vocab = builder.build(["hello", "world", "hello"])
-        # {'hello': 0, 'world': 1, '|<ENDOFTEXT>|': 2, '|<UNK>|': 3}
-    """
     
     def __init__(self, special_tokens: Optional[SpecialTokens] = None) -> None:
         """
@@ -34,15 +20,6 @@ class VocabularyBuilder(LoggerMixin):
         self._special_tokens = special_tokens or SpecialTokens()
     
     def build(self, tokens: list[str]) -> dict[str, int]:
-        """
-        Build vocabulary from tokens.
-        
-        Args:
-            tokens: List of tokens (may contain duplicates)
-            
-        Returns:
-            Dictionary mapping tokens to unique integer IDs
-        """
         # Get unique sorted tokens
         unique_tokens = sorted(set(tokens))
         
@@ -63,28 +40,10 @@ class VocabularyBuilder(LoggerMixin):
     
     @staticmethod
     def invert(vocab: dict[str, int]) -> dict[int, str]:
-        """
-        Create inverse mapping (id -> token).
-        
-        Args:
-            vocab: Token to ID mapping
-            
-        Returns:
-            ID to token mapping
-        """
         return {idx: token for token, idx in vocab.items()}
     
     @staticmethod
     def get_vocab_stats(vocab: dict[str, int]) -> dict[str, int]:
-        """
-        Get statistics about the vocabulary.
-        
-        Args:
-            vocab: Token to ID mapping
-            
-        Returns:
-            Dictionary with vocabulary statistics
-        """
         return {
             "size": len(vocab),
             "min_id": min(vocab.values()) if vocab else 0,

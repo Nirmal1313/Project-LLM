@@ -1,20 +1,3 @@
-"""
-Fine-tune pretrained GPT-2 (124M) on Shakespeare.
-
-This loads GPT-2 weights into your custom GPTModel architecture,
-then fine-tunes on your Shakespeare data with a lower learning rate.
-
-Usage:
-    pip install transformers
-    python finetune_gpt2.py
-
-The script will:
-  1. Download GPT-2 weights (or load from cache)
-  2. Show generation BEFORE fine-tuning
-  3. Fine-tune on Shakespeare with validation tracking
-  4. Show generation AFTER fine-tuning
-"""
-
 import os
 import tiktoken
 import torch
@@ -38,8 +21,7 @@ def main():
     checkpoint_dir = os.path.join(script_dir, "checkpoints")
     pretrained_path = os.path.join(checkpoint_dir, "gpt2_pretrained.pt")
 
-    # ── Step 1: Load GPT-2 pretrained weights ──
-    if os.path.exists(pretrained_path):
+    model = GPTModel(GPT2_CONFIG).to(device)
         print("Loading cached GPT-2 weights...")
         model = GPTModel(GPT2_CONFIG).to(device)
         load_checkpoint(pretrained_path, model)
@@ -49,10 +31,7 @@ def main():
         model, encoding = load_gpt2_into_model(device)
         save_pretrained(model, GPT2_CONFIG, pretrained_path)
 
-    total_params = sum(p.numel() for p in model.parameters())
     print(f"GPT-2 parameters: {total_params:,}\n")
-
-    # ── Step 2: Test BEFORE fine-tuning ──
     generator = TextGenerator(model, encoding, device)
     print("=" * 60)
     print("BEFORE Fine-tuning")
@@ -62,7 +41,6 @@ def main():
                                   temperature=0.8, top_k=40, top_p=0.95)
         print(f"\nPrompt: {prompt}\n{text}\n")
 
-    # ── Step 3: Prepare Shakespeare data ──
     file_path = os.path.join(script_dir, "Data",
                              "The Project The Complete Works of William Shakespeare by William Shakespeare.txt")
 
@@ -76,13 +54,7 @@ def main():
     val_text = '<|endoftext|>'.join(documents[split_idx:])
 
     # Fine-tuning hyperparameters
-    # Key: use MUCH lower LR than pretraining (5e-5 vs 3e-4)
-    BATCH_SIZE = 4          # Smaller batch for GPU memory (124M model)
-    CONTEXT_LENGTH = 256    # Longer context than micro model
-    NUM_EPOCHS = 2
-    MAX_BATCHES = 100       # Increase for better results
-    MAX_LR = 5e-5           # Low LR for fine-tuning!
-    MIN_LR = 5e-6
+    BATCH_SIZE = 4
     WARMUP_STEPS = 50
 
     train_loader = create_dataloader(train_text, encoding,
@@ -96,7 +68,6 @@ def main():
 
     print(f"Train batches: {len(train_loader)}, Val batches: {len(val_loader)}\n")
 
-    # ── Step 4: Fine-tune ──
     config = {**GPT2_CONFIG, "context_length": CONTEXT_LENGTH}
     ft_dir = os.path.join(checkpoint_dir, "gpt2_shakespeare")
 

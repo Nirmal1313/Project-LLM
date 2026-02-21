@@ -1,9 +1,4 @@
-"""
-Data models and schemas (DTOs).
-
-These dataclasses represent the data structures used throughout the package.
-Using frozen=True where appropriate for immutability.
-"""
+"""Data models and schemas (DTOs)."""
 
 from __future__ import annotations
 
@@ -15,11 +10,6 @@ from src.tokenizer.core.constants import Defaults
 
 @dataclass(frozen=True)
 class SpecialTokens:
-    """
-    Configuration for special tokens.
-    
-    Frozen dataclass for immutable token configuration.
-    """
     
     end_of_text: str = Defaults.END_OF_TEXT_TOKEN
     unknown: str = Defaults.UNKNOWN_TOKEN
@@ -35,11 +25,6 @@ class SpecialTokens:
 
 @dataclass
 class TokenizerResult:
-    """
-    Result of an encoding operation.
-    
-    Contains both token IDs and the corresponding tokens for inspection.
-    """
     
     token_ids: List[int]
     tokens: List[str]

@@ -1,15 +1,4 @@
-"""
-Custom exceptions for the tokenizer package.
-
-Exception hierarchy:
-    TokenizerBaseError (base for all)
-    ├── TokenizerError (general tokenizer errors)
-    │   ├── EncodingError
-    │   ├── DecodingError
-    │   └── UnknownTokenError
-    ├── VocabularyError (vocabulary-related)
-    └── FileReadError (file I/O errors)
-"""
+"""Custom exceptions for the tokenizer package."""
 
 from __future__ import annotations
 
@@ -17,14 +6,6 @@ from typing import Any, Optional
 
 
 class TokenizerBaseError(Exception):
-    """
-    Base exception for all tokenizer errors.
-    
-    Provides:
-    - Structured error messages
-    - Optional error details dict
-    - String representation for logging
-    """
     
     def __init__(
         self,

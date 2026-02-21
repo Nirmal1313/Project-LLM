@@ -1,8 +1,4 @@
-"""
-Simple tokenizer implementation.
-
-Strategy Pattern: Basic strategy that raises errors on unknown tokens.
-"""
+"""Simple tokenizer implementation."""
 
 from __future__ import annotations
 
@@ -11,33 +7,8 @@ from src.tokenizer.tokenizers.base import BaseTokenizer
 
 
 class SimpleTokenizer(BaseTokenizer):
-    """
-    Basic tokenizer that raises errors on unknown tokens.
-    
-    Strategy Pattern: One strategy for handling tokens.
-    
-    Use this when:
-        - You know all tokens are in the vocabulary
-        - You want to fail fast on unknown tokens
-    
-    Example:
-        tokenizer = SimpleTokenizer(vocabulary)
-        ids = tokenizer.encode("Hello world")  # May raise UnknownTokenError
-    """
     
     def encode(self, text: str) -> list[int]:
-        """
-        Encode text, raising error for unknown tokens.
-        
-        Args:
-            text: Input text
-            
-        Returns:
-            List of token IDs
-            
-        Raises:
-            UnknownTokenError: If a token is not in vocabulary
-        """
         tokens = self._splitter.split(text)
         
         ids = []
@@ -49,18 +20,6 @@ class SimpleTokenizer(BaseTokenizer):
         return ids
     
     def decode(self, ids: list[int]) -> str:
-        """
-        Decode token IDs to text.
-        
-        Args:
-            ids: List of token IDs
-            
-        Returns:
-            Decoded text (space-separated tokens)
-            
-        Raises:
-            DecodingError: If a token ID is not in vocabulary
-        """
         tokens = []
         for token_id in ids:
             if token_id not in self._id_to_token:

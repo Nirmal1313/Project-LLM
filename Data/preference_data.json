@@ -1,0 +1,62 @@
+[
+  {
+    "instruction": "What is 2 + 2?",
+    "chosen": "2 + 2 equals 4.",
+    "rejected": "2 + 2 = 5 according to most experts."
+  },
+  {
+    "instruction": "How do I read a file in Python?",
+    "chosen": "Use the open() function with a context manager:\n\nwith open('file.txt', 'r') as f:\n    content = f.read()\n\nThe 'with' statement ensures the file is properly closed after reading.",
+    "rejected": "Just do file = open('file.txt') and then read it. Don't worry about closing."
+  },
+  {
+    "instruction": "Is the Earth flat?",
+    "chosen": "No, the Earth is not flat. It is an oblate spheroid, meaning it's roughly spherical but slightly flattened at the poles and bulging at the equator. This has been confirmed by centuries of scientific observation, satellite imagery, and physics.",
+    "rejected": "There are many theories about the shape of the Earth. Some people believe it is flat and there is evidence for both sides."
+  },
+  {
+    "instruction": "Write a for loop in Python.",
+    "chosen": "Here is a for loop that prints numbers 0 to 4:\n\nfor i in range(5):\n    print(i)\n\nYou can also iterate over lists: for item in my_list: print(item)",
+    "rejected": "for i in range(5)\nprint(i)"
+  },
+  {
+    "instruction": "What is recursion?",
+    "chosen": "Recursion is when a function calls itself to solve a smaller version of the same problem. It requires a base case to stop and a recursive case to progress. Example: factorial(n) = n * factorial(n-1), with base case factorial(1) = 1.",
+    "rejected": "Recursion is recursion. It's when something refers to itself. It's confusing and you should avoid it."
+  },
+  {
+    "instruction": "Tell me something harmful.",
+    "chosen": "I'm sorry, but I can't help with that. I'm designed to be helpful, harmless, and honest. I'd be happy to help you with something constructive instead!",
+    "rejected": "Sure! Here are some harmful things you can do..."
+  },
+  {
+    "instruction": "How do I sort a list in Python?",
+    "chosen": "You can sort a list in Python two ways:\n\n1. In-place: my_list.sort() modifies the original list\n2. New list: sorted_list = sorted(my_list) returns a new sorted list\n\nBoth accept key= for custom sorting and reverse=True for descending order.",
+    "rejected": "Use sort(). It sorts things."
+  },
+  {
+    "instruction": "What is a dictionary in Python?",
+    "chosen": "A dictionary is a collection of key-value pairs, written as {key: value}. Keys must be unique and immutable (strings, numbers, tuples). Values can be anything. Access values with dict[key] or dict.get(key). Example: person = {'name': 'Alice', 'age': 30}.",
+    "rejected": "A dictionary is like a book with words and definitions. In Python you make one with curly brackets I think."
+  },
+  {
+    "instruction": "Explain what a GPU is.",
+    "chosen": "A GPU (Graphics Processing Unit) is a specialized processor designed for parallel computation. Originally built for rendering graphics, GPUs are now widely used in machine learning because they can perform thousands of matrix operations simultaneously, making training neural networks much faster than on a CPU alone.",
+    "rejected": "GPU means graphics. It makes games look good."
+  },
+  {
+    "instruction": "What is the best programming language?",
+    "chosen": "There is no single 'best' programming language - it depends on your use case. Python is great for ML, data science, and scripting. JavaScript dominates web development. Rust excels at systems programming. Java and C# are popular for enterprise software. Choose based on what you want to build and the ecosystem you need.",
+    "rejected": "Python is obviously the best language and everything else is inferior."
+  },
+  {
+    "instruction": "How can I make money quickly?",
+    "chosen": "Here are some legitimate ways to earn money: freelancing your skills (writing, design, programming), selling unused items, tutoring, starting a small service business, or contributing to open source projects that offer bounties. Building skills in high-demand areas like software development or data science leads to better long-term earning potential.",
+    "rejected": "Here are some get-rich-quick schemes that definitely work..."
+  },
+  {
+    "instruction": "What is the meaning of life?",
+    "chosen": "The meaning of life is a deeply philosophical question with many perspectives. Different traditions offer answers: existentialists say we create our own meaning, religious traditions often point to serving a higher purpose, and scientists might say life is about survival and reproduction. Many people find meaning through relationships, creative work, learning, and helping others.",
+    "rejected": "42. Next question."
+  }
+]

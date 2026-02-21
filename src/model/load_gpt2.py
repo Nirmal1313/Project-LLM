@@ -1,32 +1,5 @@
 """
-Download GPT-2 (124M) pretrained weights and load into our GPTModel.
-
-Maps HuggingFace GPT-2 state dict to our exact architecture:
-
-  HuggingFace key                            Our key
-  ─────────────────────────────────           ──────────────────────────────────────────
-  transformer.wte.weight                  -> token_embedding.weight
-  transformer.wpe.weight                  -> position_embedding.weight
-  transformer.ln_f.weight/bias            -> final_norm.weight/bias
-  transformer.h.{i}.ln_1.weight/bias      -> transformer_blocks.{i}.norm1.weight/bias
-  transformer.h.{i}.ln_2.weight/bias      -> transformer_blocks.{i}.norm2.weight/bias
-  transformer.h.{i}.attn.c_attn.w/b      -> transformer_blocks.{i}.att.query/key/value
-  transformer.h.{i}.attn.c_proj.w/b      -> transformer_blocks.{i}.att.out.weight/bias
-  transformer.h.{i}.mlp.c_fc.w/b         -> transformer_blocks.{i}.ff.layers.0.w/b
-  transformer.h.{i}.mlp.c_proj.w/b       -> transformer_blocks.{i}.ff.layers.2.w/b
-  lm_head.weight (= wte.weight)          -> output_head.weight
-
-NOTE: GPT-2 uses Conv1D (weights stored as [in, out]).
-      Our model uses nn.Linear (weights stored as [out, in]).
-      So we transpose all linear weights during mapping.
-
-Usage:
-    pip install transformers
-    python -m src.model.load_gpt2
-
-Or import:
-    from src.model.load_gpt2 import load_gpt2_into_model
-    model, encoding = load_gpt2_into_model(device)
+Download GPT-2 (124M) pretrained weights and load into GPTModel.
 """
 
 import os

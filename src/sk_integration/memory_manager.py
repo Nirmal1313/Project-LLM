@@ -24,14 +24,6 @@ class ConversationMemory:
         }
 
     def add_exchange(self, user_input: str, assistant_response: str, metadata: Optional[dict] = None):
-        """
-        Add a user-assistant exchange to memory.
-        
-        Args:
-            user_input: User's message
-            assistant_response: Assistant's response
-            metadata: Optional metadata (temperature, tokens used, etc.)
-        """
         exchange = {
             "timestamp": datetime.now().isoformat(),
             "user": user_input,

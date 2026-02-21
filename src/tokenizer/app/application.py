@@ -1,8 +1,4 @@
-"""
-Main application module.
-
-Composition Root: Wires all dependencies together.
-"""
+"""Main application module."""
 
 from __future__ import annotations
 
@@ -29,20 +25,6 @@ from src.tokenizer.tokenizers.with_unknown import TokenizerWithUnknown
 
 
 class TokenizerApplication(LoggerMixin):
-    """
-    Main application that coordinates all components.
-    
-    Composition Root: Wires all dependencies together.
-    Dependency Injection: All dependencies are injected via constructor.
-    
-    Example:
-        app = TokenizerApplication()
-        app.load_vocabulary_from_file(Path("data.txt"))
-        tokenizer = app.get_tokenizer("with_unknown")
-        
-        result = tokenizer.encode_with_tokens("Hello world!")
-        print(result.token_ids)
-    """
     
     def __init__(
         self,
@@ -52,18 +34,6 @@ class TokenizerApplication(LoggerMixin):
         vocab_builder: Optional[IVocabularyBuilder] = None,
         special_tokens: Optional[SpecialTokens] = None,
     ) -> None:
-        """
-        Initialize the application with dependencies.
-        
-        All parameters are optional - defaults will be created if not provided.
-        
-        Args:
-            file_reader: File reading implementation
-            text_cleaner: Text cleaning implementation
-            text_splitter: Text splitting implementation
-            vocab_builder: Vocabulary building implementation
-            special_tokens: Special tokens configuration
-        """
         self._special_tokens = special_tokens or SpecialTokens()
         self._text_cleaner = text_cleaner or TextCleaner()
         self._text_splitter = text_splitter or TextSplitter(self._text_cleaner)

@@ -1,12 +1,4 @@
-"""
-Centralized logging configuration.
-
-Provides consistent logging across all modules with:
-- Configurable log levels
-- Formatted output with timestamps
-- File logging with rotation
-- Class mixin for easy logger access
-"""
+"""Centralized logging configuration."""
 
 from __future__ import annotations
 
@@ -39,15 +31,6 @@ def setup_logging(
     max_bytes: int = DEFAULT_MAX_BYTES,
     backup_count: int = DEFAULT_BACKUP_COUNT,
 ) -> Path | None:
-    """
-    Configure logging for the application with both console and file output.
-    
-    Args:
-        level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-        format_string: Format string for log messages
-        date_format: Format string for timestamps
-        stream: Output stream for console (defaults to sys.stdout)
-        log_to_file: Whether to also log to a file
         log_dir: Directory for log files (created if doesn't exist)
         log_file: Name of the log file
         max_bytes: Maximum size of log file before rotation (default 5MB)

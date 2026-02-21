@@ -1,39 +1,7 @@
-"""
-Custom Tokenizers — Learning / Intuition Reference
-====================================================
-
-This file contains the early tokenizer implementations built from scratch
-to understand how tokenization works before moving to production tokenizers
-like tiktoken (BPE).
-
-These are NOT used in the main pipeline. They exist purely for learning.
-
-How it works:
-    1. VocabularySort   — takes a list of words, deduplicates & sorts them
-    2. dictionary       — maps each unique token to an integer ID
-    3. SimpleTokenizerV1 — basic encode/decode using the vocabulary
-    4. SimpleTokenizerV2 — adds <UNK> and <ENDOFTEXT> special token handling
-
-Usage example:
-    from intuition.custom_tokenizers import (
-        VocabularySort, dictionary, SimpleTokenizerV1, SimpleTokenizerV2
-    )
-
-    words = ["To", "be", "or", "not", "to", "be"]
-    sorted_vocab = VocabularySort(words)
-    words_dict = dictionary(sorted_vocab)
-
-    tokenizer = SimpleTokenizerV1(words_dict)
-    ids = tokenizer.encode("To be or not to be")
-    text = tokenizer.tokenize(ids)
-"""
+"""Custom Tokenizers — Learning / Intuition Reference"""
 
 import re
 
-
-# ---------------------------------------------------------------------------
-# Vocabulary helpers
-# ---------------------------------------------------------------------------
 
 def VocabularySort(words: list) -> list:
     """Calculate the vocabulary size from a list of words."""
@@ -79,10 +47,6 @@ class SimpleTokenizerV1:
         words = re.sub(r'([,.:;!<>?"()\[\]{}\-_@#$%^&*+=~`|\\\/]|--|\s)', r' \1 ', words)
         return words
 
-
-# ---------------------------------------------------------------------------
-# SimpleTokenizerV2 — handles unknown tokens with <UNK>
-# ---------------------------------------------------------------------------
 
 class SimpleTokenizerV2:
     """

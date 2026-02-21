@@ -1,8 +1,4 @@
-"""
-Text splitting module.
-
-Single Responsibility: Only handles splitting text into tokens.
-"""
+"""Text splitting module."""
 
 from __future__ import annotations
 
@@ -15,16 +11,6 @@ from src.tokenizer.processing.cleaner import TextCleaner
 
 
 class TextSplitter(LoggerMixin):
-    """
-    Splits text into tokens using regex.
-    
-    Single Responsibility: Only handles text splitting.
-    Dependency Injection: TextCleaner is injected.
-    
-    Example:
-        splitter = TextSplitter()
-        tokens = splitter.split("Hello, world!")  # ['Hello', ',', 'world', '!']
-    """
     
     def __init__(self, text_cleaner: Optional[ITextCleaner] = None) -> None:
         """
@@ -37,16 +23,6 @@ class TextSplitter(LoggerMixin):
         self._pattern = Patterns.SPLIT_PATTERN
     
     def split(self, text: str, clean_first: bool = True) -> list[str]:
-        """
-        Split text into tokens.
-        
-        Args:
-            text: Input text
-            clean_first: If True, clean text before splitting
-            
-        Returns:
-            List of tokens (non-empty, stripped)
-        """
         if clean_first:
             text = self._cleaner.clean(text)
         
@@ -59,21 +35,6 @@ class TextSplitter(LoggerMixin):
         special_tokens: list[str],
         clean_first: bool = True,
     ) -> list[str]:
-        """
-        Split text while preserving special tokens.
-        
-        Special tokens are replaced with placeholders before splitting,
-        then restored after to prevent them from being split apart.
-        
-        Args:
-            text: Input text
-            special_tokens: List of special tokens to preserve
-            clean_first: If True, clean text before splitting
-            
-        Returns:
-            List of tokens with special tokens preserved
-        """
-        # Replace special tokens with placeholders
         placeholders: dict[str, str] = {}
         for i, token in enumerate(special_tokens):
             placeholder = Patterns.PLACEHOLDER_TEMPLATE.format(index=i)

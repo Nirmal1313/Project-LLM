@@ -1,27 +1,3 @@
-"""
-Semantic Kernel-based Chat Interface
-
-Enhanced chat interface using Semantic Kernel for orchestration and memory management.
-
-Usage:
-    python sk_chat.py                  # loads best available model
-    python sk_chat.py --model sft      # force instruction-tuned model
-    python sk_chat.py --model dpo      # force DPO-aligned model
-
-Commands inside chat:
-    /quit or /exit        — leave the chat
-    /reset               — clear conversation history
-    /info                — show model information
-    /settings            — show current settings
-    /temp <value>        — set temperature (e.g. /temp 0.8)
-    /topk <value>        — set top-k (e.g. /topk 50)
-    /topp <value>        — set top-p (e.g. /topp 0.95)
-    /tokens <value>      — set max tokens (e.g. /tokens 200)
-    /memory              — show conversation memory summary
-    /refine              — refine last response with iteration
-    /multi <steps>       — execute multi-step task
-"""
-
 import argparse
 import sys
 

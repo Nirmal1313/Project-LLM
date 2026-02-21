@@ -40,16 +40,6 @@ class SKOrchestrator:
         self.kernel.add_plugin(self.plugins, plugin_name="chat")
 
     def execute_task(self, user_input: str, context: Optional[str] = None) -> tuple[str, dict]:
-        """
-        Execute a task with optional context enrichment.
-        
-        Args:
-            user_input: User's input/question
-            context: Optional additional context
-            
-        Returns:
-            Tuple of (response, metadata)
-        """
         # Enrich prompt with conversation history if available
         prompt = user_input
         if self.memory:
@@ -74,16 +64,6 @@ class SKOrchestrator:
         return response, metadata
 
     def execute_with_refinement(self, user_input: str, max_iterations: int = 2) -> str:
-        """
-        Execute a task with iterative refinement.
-        
-        Args:
-            user_input: Initial user input
-            max_iterations: Maximum refinement iterations
-            
-        Returns:
-            Refined response
-        """
         response = user_input
         
         for i in range(max_iterations):
@@ -103,15 +83,6 @@ class SKOrchestrator:
         return response
 
     def execute_multi_step(self, steps: list[str]) -> list[tuple[str, dict]]:
-        """
-        Execute multiple steps in sequence.
-        
-        Args:
-            steps: List of prompts/steps to execute
-            
-        Returns:
-            List of (response, metadata) tuples
-        """
         results = []
         for step in steps:
             response, metadata = self.execute_task(step)
@@ -139,15 +110,6 @@ class SKOrchestrator:
         return self.memory.get_full_history()
 
     def process_command(self, command: str) -> str:
-        """
-        Process system commands.
-        
-        Args:
-            command: Command string (e.g., "settings", "info", "clear")
-            
-        Returns:
-            Command result
-        """
         if command == "info":
             return self.plugins.get_model_info()
         elif command == "settings":

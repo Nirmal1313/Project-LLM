@@ -31,32 +31,6 @@ class TextGenerator:
         repetition_penalty: float = 1.0,
         eos_token: str | None = "<|endoftext|>",
     ) -> str:
-        """
-        Generate text with configurable decoding strategy.
-
-        Args:
-            prompt:             Input text to continue from
-            max_new_tokens:     Maximum tokens to generate
-            temperature:        Sampling temperature (0.0 = greedy)
-                                - Low (0.2): more confident, deterministic
-                                - Medium (0.7): balanced
-                                - High (1.5): more random, creative
-            top_k:              Keep only top k tokens (None = disabled)
-                                - Cuts off the long tail of unlikely tokens
-            top_p:              Nucleus sampling threshold (None = disabled)
-                                - Keeps smallest set of tokens covering p% probability
-                                - top_p=0.9 means keep tokens summing to 90% prob mass
-            repetition_penalty: Penalize already-seen tokens (1.0 = no penalty)
-                                - >1.0 reduces repetition (e.g. 1.2)
-                                - Divides logit by penalty if logit>0, multiplies if logit<0
-            eos_token:          Stop generation when this token is produced
-
-        Common recipes:
-            Greedy:       temperature=0.0
-            Creative:     temperature=0.9, top_k=50, top_p=0.95
-            Balanced:     temperature=0.7, top_k=40, top_p=0.9
-            No repeats:   temperature=0.8, top_k=40, repetition_penalty=1.3
-        """
         self.model.eval()
 
         token_ids = self.tokenizer.encode(prompt, allowed_special={"<|endoftext|>"})

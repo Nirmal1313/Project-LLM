@@ -44,16 +44,6 @@ class ChatPlugins:
         name="generate_response"
     )
     def generate_response(self, prompt: str, use_instruction_format: bool = True) -> str:
-        """
-        Generate a response given a prompt.
-        
-        Args:
-            prompt: User input or formatted prompt
-            use_instruction_format: Whether to use instruction template
-            
-        Returns:
-            Generated response
-        """
         PROMPT_TEMPLATE = "### Instruction:\n{instruction}\n\n### Response:\n"
 
         if use_instruction_format:
@@ -88,16 +78,6 @@ class ChatPlugins:
         name="predict_next_tokens"
     )
     def predict_next_tokens(self, text: str, top_k: int = 5) -> str:
-        """
-        Get top-k next token predictions.
-        
-        Args:
-            text: Input text
-            top_k: Number of predictions to return
-            
-        Returns:
-            Formatted predictions
-        """
         predictions = self.generator.predict_next_token(text, top_k=top_k)
         
         result_lines = ["Top token predictions:"]

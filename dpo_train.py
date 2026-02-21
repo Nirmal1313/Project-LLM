@@ -1,31 +1,3 @@
-"""
-Stage 3: Direct Preference Optimization (DPO)
-
-Takes an instruction-tuned model and aligns it with human preferences
-using DPO — a simpler alternative to full RLHF that doesn't need a
-separate reward model.
-
-Algorithm (Rafailov et al., 2023):
-  Given:
-    - π_θ  = policy model (being trained)
-    - π_ref = reference model (frozen copy of the SFT model)
-    - (x, y_w, y_l) = prompt, chosen (preferred) response, rejected response
-
-  Loss:
-    L_DPO = -E[ log σ( β · ( log π_θ(y_w|x)/π_ref(y_w|x)
-                            - log π_θ(y_l|x)/π_ref(y_l|x) ) ) ]
-
-  Intuition: Push the model to increase the probability gap between
-  chosen and rejected responses, relative to the reference model.
-
-Usage:
-    python dpo_train.py
-
-Reads:  Data/preference_data.json
-        checkpoints/instruction_tuned/best_model.pt  (SFT model)
-Saves:  checkpoints/dpo_aligned/best_model.pt
-"""
-
 import copy
 import json
 import os
@@ -44,17 +16,7 @@ from main import load_checkpoint, _save_checkpoint
 from instruction_tune import PROMPT_TEMPLATE
 
 
-# ── Dataset ──────────────────────────────────────────────────────
 class PreferenceDataset(Dataset):
-    """
-    Each example has:
-      - prompt:   "### Instruction:\\n{instruction}\\n\\n### Response:\\n"
-      - chosen:   prompt + chosen_response + <|endoftext|>
-      - rejected: prompt + rejected_response + <|endoftext|>
-
-    We tokenise both and pad to max_length.
-    We also store the prompt length so we can mask the loss.
-    """
 
     def __init__(self, examples: list[dict], tokenizer, max_length: int = 512):
         self.chosen_ids = []
@@ -116,38 +78,22 @@ class PreferenceDataset(Dataset):
         )
 
 
-# ── Log-probability computation ──────────────────────────────────
 def compute_log_probs(model, input_ids, mask):
-    """
-    Compute per-token log P(token | previous tokens) and return
-    the masked sum of log-probs for the response portion.
-
-    Args:
-        model:     GPTModel
-        input_ids: (B, T)   token IDs
-        mask:      (B, T)   1 for response tokens, 0 for prompt/pad
-
-    Returns:
-        log_probs: (B,) sum of log-probs over response tokens per example
-    """
-    logits = model(input_ids)                 # (B, T, V)
-    # Shift: logits[:, :-1, :] predicts input_ids[:, 1:]
+    logits = model(input_ids)
     shift_logits = logits[:, :-1, :].contiguous()
     shift_labels = input_ids[:, 1:].contiguous()
     shift_mask = mask[:, 1:].contiguous()
 
-    # Per-token log-prob
-    log_probs_all = F.log_softmax(shift_logits, dim=-1)           # (B, T-1, V)
+    log_probs_all = F.log_softmax(shift_logits, dim=-1)
     token_log_probs = log_probs_all.gather(
         2, shift_labels.unsqueeze(-1)
-    ).squeeze(-1)                                                  # (B, T-1)
+    ).squeeze(-1)
 
-    # Mask and sum per example
-    masked_log_probs = (token_log_probs * shift_mask).sum(dim=-1)  # (B,)
+    masked_log_probs = (token_log_probs * shift_mask).sum(dim=-1)
     return masked_log_probs
 
 
-# ── DPO Loss ──────────────────────────────────────────────────────
+
 def dpo_loss(
     policy_model,
     ref_model,
@@ -158,16 +104,7 @@ def dpo_loss(
     beta: float = 0.1,
 ):
     """
-    DPO loss (Rafailov et al., 2023).
 
-    L = -E[ log σ( β · (log π_θ(y_w|x)/π_ref(y_w|x)
-                       - log π_θ(y_l|x)/π_ref(y_l|x)) ) ]
-
-    Returns:
-        loss:             scalar
-        chosen_rewards:   (B,) implicit reward for chosen responses
-        rejected_rewards: (B,) implicit reward for rejected responses
-    """
     # Policy log-probs
     policy_chosen_lp = compute_log_probs(policy_model, chosen_ids, chosen_mask)
     policy_rejected_lp = compute_log_probs(policy_model, rejected_ids, rejected_mask)
@@ -192,7 +129,7 @@ def dpo_loss(
     return loss, chosen_rewards, rejected_rewards
 
 
-# ── Training loop ────────────────────────────────────────────────
+
 def train_dpo(
     policy_model,
     ref_model,
@@ -209,13 +146,7 @@ def train_dpo(
     checkpoint_dir: str = "checkpoints/dpo_aligned",
 ):
     """
-    DPO training loop.
 
-    β controls how much the policy can deviate from the reference:
-      - High β (0.5): conservative, stays close to SFT model
-      - Low β (0.05): aggressive, allows bigger changes
-      - Default 0.1: balanced
-    """
     optimizer = torch.optim.AdamW(
         policy_model.parameters(), lr=max_lr, weight_decay=0.01
     )

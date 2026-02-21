@@ -1,23 +1,3 @@
-"""
-Stage 2: Instruction Tuning  (Supervised Fine-Tuning — SFT)
-
-Takes a pretrained GPT-2 (124M) and fine-tunes it on instruction/response
-pairs so it learns to follow instructions rather than just continue text.
-
-Key ideas:
-  - Format each example as:
-        ### Instruction:\n{instruction}\n\n### Response:\n{response}<|endoftext|>
-  - Mask the loss on the instruction/prompt tokens so the model only learns
-    to *generate responses*, not memorise the prompts.
-  - Use a low learning rate (2e-5) since we're adapting a pretrained model.
-
-Usage:
-    python instruction_tune.py
-
-Reads:  Data/instruction_data.json   (30 instruction/response pairs)
-Saves:  checkpoints/instruction_tuned/best_model.pt
-"""
-
 import json
 import os
 import time
@@ -34,28 +14,15 @@ from src.model.load_gpt2 import GPT2_CONFIG, save_pretrained
 from main import load_checkpoint, _save_checkpoint
 
 
-# ── Chat format ──────────────────────────────────────────────────
 PROMPT_TEMPLATE = "### Instruction:\n{instruction}\n\n### Response:\n"
 
 def format_example(instruction: str, response: str) -> str:
-    """Format a single instruction/response pair for training."""
     return PROMPT_TEMPLATE.format(instruction=instruction) + response
 
 
-# ── Dataset ──────────────────────────────────────────────────────
 class InstructionDataset(Dataset):
-    """
-    Tokenises instruction/response pairs and creates input/target
-    tensors with a *loss mask* that ignores the prompt tokens.
 
-    For each example the layout is:
 
-        [prompt tokens ...] [response tokens ...] [<|endoftext|>]
-         ^^ mask = 0 ^^      ^^ mask = 1 ^^        ^^ mask = 1 ^^
-
-    The model still *sees* the prompt (input_ids), but the loss is
-    only computed on the response portion (where mask == 1).
-    """
 
     def __init__(self, examples: list[dict], tokenizer, max_length: int = 256):
         self.input_ids = []
@@ -84,20 +51,16 @@ class InstructionDataset(Dataset):
                 skipped += 1
                 continue
 
-            input_seq = full_ids[:-1]     # everything except last token
-            target_seq = full_ids[1:]     # shifted by 1
+            input_seq = full_ids[:-1]
+            target_seq = full_ids[1:]
 
-            # Loss mask: 0 for prompt tokens, 1 for response tokens
             prompt_len = min(len(prompt_ids), len(input_seq))
-            # The target at position i corresponds to predicting token i+1
-            # We mask the first prompt_len-1 positions in the target
             mask = [0] * (prompt_len - 1) + [1] * (len(target_seq) - prompt_len + 1)
 
-            # Pad to max_length
             pad_len = max_length - len(input_seq)
             input_seq  += [eos_id] * pad_len
             target_seq += [eos_id] * pad_len
-            mask       += [0]      * pad_len   # don't compute loss on padding
+            mask       += [0]      * pad_len
 
             self.input_ids.append(torch.tensor(input_seq, dtype=torch.long))
             self.target_ids.append(torch.tensor(target_seq, dtype=torch.long))
@@ -115,7 +78,6 @@ class InstructionDataset(Dataset):
         return self.input_ids[idx], self.target_ids[idx], self.loss_masks[idx]
 
 
-# ── Masked training loop ────────────────────────────────────────
 def train_instruction(
     model, train_loader, val_loader, device, config,
     num_epochs: int = 5,
@@ -125,12 +87,6 @@ def train_instruction(
     max_grad_norm: float = 1.0,
     checkpoint_dir: str = "checkpoints/instruction_tuned",
 ):
-    """
-    Training loop with *masked* cross-entropy loss.
-
-    Only tokens where loss_mask == 1 contribute to the loss,
-    so the model learns to predict responses, not memorise prompts.
-    """
     optimizer = torch.optim.AdamW(model.parameters(), lr=max_lr, weight_decay=0.01)
     model.train()
 

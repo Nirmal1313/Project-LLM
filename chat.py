@@ -1,24 +1,3 @@
-"""
-Interactive Chat Interface
-
-Talk to your instruction-tuned (and optionally DPO-aligned) GPT-2 model
-in a simple terminal chat loop.
-
-Usage:
-    python chat.py                  # loads best available model
-    python chat.py --model sft      # force instruction-tuned model
-    python chat.py --model dpo      # force DPO-aligned model
-    python chat.py --model pretrained  # raw GPT-2 (no instruction tuning)
-
-Commands inside chat:
-    /quit   or  /exit   — leave the chat
-    /reset              — clear conversation history
-    /temp <value>       — set temperature  (e.g. /temp 0.8)
-    /topk <value>       — set top-k        (e.g. /topk 50)
-    /topp <value>       — set top-p        (e.g. /topp 0.95)
-    /tokens <value>     — set max tokens   (e.g. /tokens 200)
-"""
-
 import argparse
 import os
 import sys

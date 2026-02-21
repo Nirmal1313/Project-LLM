@@ -1,8 +1,4 @@
-"""
-Text cleaning module.
-
-Single Responsibility: Only handles text cleaning and normalization.
-"""
+"""Text cleaning module."""
 
 from __future__ import annotations
 
@@ -13,15 +9,7 @@ from src.tokenizer.core.logging import LoggerMixin
 
 
 class TextCleaner(LoggerMixin):
-    """
-    Cleans text by normalizing unicode and replacing special characters.
-    
-    Single Responsibility: Only handles text cleaning.
-    
-    Example:
-        cleaner = TextCleaner()
-        clean_text = cleaner.clean("Hello "world"")  # Hello "world"
-    """
+
     
     def __init__(self, remove_non_ascii: bool = True) -> None:
         """
@@ -34,15 +22,6 @@ class TextCleaner(LoggerMixin):
         self._replacement_map = SmartQuoteMapping.get_replacement_map()
     
     def clean(self, text: str) -> str:
-        """
-        Clean text by normalizing and replacing special characters.
-        
-        Args:
-            text: Raw input text
-            
-        Returns:
-            Cleaned text with normalized unicode and ASCII-only characters
-        """
         if not text:
             return text
         

@@ -1,9 +1,4 @@
-"""
-Base tokenizer module.
-
-Open-Closed Principle: Extend by subclassing, not modifying.
-Liskov Substitution: All subclasses can replace this base.
-"""
+"""Base tokenizer module."""
 
 from __future__ import annotations
 
@@ -18,30 +13,12 @@ from src.tokenizer.vocabulary.builder import VocabularyBuilder
 
 
 class BaseTokenizer(ABC, LoggerMixin):
-    """
-    Abstract base tokenizer.
-    
-    Open-Closed: Extend by subclassing, not modifying.
-    Liskov Substitution: All subclasses can replace this base.
-    Dependency Inversion: Depends on ITextSplitter abstraction.
-    
-    Subclasses must implement:
-        - encode(text: str) -> list[int]
-        - decode(ids: list[int]) -> str
-    """
     
     def __init__(
         self,
         vocabulary: dict[str, int],
         text_splitter: Optional[ITextSplitter] = None,
     ) -> None:
-        """
-        Initialize the tokenizer.
-        
-        Args:
-            vocabulary: Token to ID mapping
-            text_splitter: Text splitter instance (Dependency Injection)
-        """
         self._vocabulary = vocabulary
         self._id_to_token = VocabularyBuilder.invert(vocabulary)
         self._splitter = text_splitter or TextSplitter()
