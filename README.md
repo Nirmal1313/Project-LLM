@@ -54,7 +54,7 @@ The project includes Shakespeare text data (`Data/The Project The Complete Works
 1. **Clone or navigate to project directory**
 
 ```bash
-cd c:\Users\nirma\source\repos\LLM\Project
+cd LLM\Project
 ```
 
 2. **Create and activate virtual environment**
